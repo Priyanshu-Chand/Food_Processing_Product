@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FiAlertTriangle, FiClock, FiEdit3, FiPackage, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import Button from '../components/Button';
 import ChartCard from '../components/ChartCard';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
 import Modal from '../components/Modal';
-import { inventoryResponse } from '../data/products';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { apiRequest } from '../lib/api';
 
 const rawMaterialTemplate = {
   batch: '',
@@ -59,7 +60,7 @@ function getInventoryHealth(rawEntries, finishedEntries) {
   }));
 }
 
-function InventoryForm({ entryType, formState, setFormState, onSubmit }) {
+function InventoryForm({ entryType, formState, setFormState, onSubmit, isSaving }) {
   const fields =
     entryType === 'raw'
       ? [
@@ -98,8 +99,8 @@ function InventoryForm({ entryType, formState, setFormState, onSubmit }) {
         ))}
       </div>
       <div className="flex justify-end">
-        <Button type="submit" variant="accent">
-          Save Entry
+        <Button disabled={isSaving} type="submit" variant="accent">
+          {isSaving ? 'Saving...' : 'Save Entry'}
         </Button>
       </div>
     </form>
@@ -107,16 +108,14 @@ function InventoryForm({ entryType, formState, setFormState, onSubmit }) {
 }
 
 export default function Inventory() {
-  const [rawEntries, setRawEntries] = useLocalStorage(
-    'himshakti-raw-materials',
-    inventoryResponse.data.rawMaterials,
-  );
-  const [finishedEntries, setFinishedEntries] = useLocalStorage(
-    'himshakti-finished-goods',
-    inventoryResponse.data.finishedGoods,
-  );
+  const [rawEntries, setRawEntries] = useState([]);
+  const [finishedEntries, setFinishedEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [pageError, setPageError] = useState('');
+  const [mutationError, setMutationError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [modalState, setModalState] = useState({
     isOpen: false,
     entryType: 'raw',
@@ -125,6 +124,24 @@ export default function Inventory() {
   });
   const [rawForm, setRawForm] = useState(rawMaterialTemplate);
   const [finishedForm, setFinishedForm] = useState(finishedGoodsTemplate);
+
+  useEffect(() => {
+    const loadInventory = async () => {
+      try {
+        setIsLoading(true);
+        setPageError('');
+        const response = await apiRequest('/inventory');
+        setRawEntries(response.data.rawMaterials);
+        setFinishedEntries(response.data.finishedGoods);
+      } catch (requestError) {
+        setPageError(requestError.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInventory();
+  }, []);
 
   const filteredRawEntries = useMemo(() => {
     return rawEntries.filter((entry) => {
@@ -163,6 +180,7 @@ export default function Inventory() {
   );
 
   const openCreateModal = (entryType) => {
+    setMutationError('');
     setModalState({ isOpen: true, entryType, mode: 'create', editingId: null });
     if (entryType === 'raw') {
       setRawForm(rawMaterialTemplate);
@@ -172,6 +190,7 @@ export default function Inventory() {
   };
 
   const openEditModal = (entryType, entry) => {
+    setMutationError('');
     setModalState({ isOpen: true, entryType, mode: 'edit', editingId: entry.id });
     if (entryType === 'raw') {
       setRawForm(entry);
@@ -184,41 +203,89 @@ export default function Inventory() {
     setModalState((current) => ({ ...current, isOpen: false }));
   };
 
-  const saveRawEntry = (event) => {
+  const saveRawEntry = async (event) => {
     event.preventDefault();
-    if (modalState.mode === 'edit') {
-      setRawEntries((current) =>
-        current.map((entry) => (entry.id === modalState.editingId ? { ...rawForm, id: entry.id } : entry)),
-      );
-    } else {
-      setRawEntries((current) => [{ ...rawForm, id: `rm-${Date.now()}` }, ...current]);
+    try {
+      setIsSaving(true);
+      setMutationError('');
+
+      if (modalState.mode === 'edit') {
+        const response = await apiRequest(`/inventory/raw-materials/${modalState.editingId}`, {
+          method: 'PUT',
+          body: JSON.stringify(rawForm),
+        });
+        setRawEntries((current) =>
+          current.map((entry) => (entry.id === modalState.editingId ? response.data : entry)),
+        );
+      } else {
+        const response = await apiRequest('/inventory/raw-materials', {
+          method: 'POST',
+          body: JSON.stringify(rawForm),
+        });
+        setRawEntries((current) => [response.data, ...current]);
+      }
+
+      closeModal();
+    } catch (requestError) {
+      setMutationError(requestError.message);
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
 
-  const saveFinishedEntry = (event) => {
+  const saveFinishedEntry = async (event) => {
     event.preventDefault();
-    if (modalState.mode === 'edit') {
-      setFinishedEntries((current) =>
-        current.map((entry) =>
-          entry.id === modalState.editingId ? { ...finishedForm, id: entry.id } : entry,
-        ),
-      );
-    } else {
-      setFinishedEntries((current) => [{ ...finishedForm, id: `fg-${Date.now()}` }, ...current]);
+    try {
+      setIsSaving(true);
+      setMutationError('');
+
+      if (modalState.mode === 'edit') {
+        const response = await apiRequest(`/inventory/finished-goods/${modalState.editingId}`, {
+          method: 'PUT',
+          body: JSON.stringify(finishedForm),
+        });
+        setFinishedEntries((current) =>
+          current.map((entry) => (entry.id === modalState.editingId ? response.data : entry)),
+        );
+      } else {
+        const response = await apiRequest('/inventory/finished-goods', {
+          method: 'POST',
+          body: JSON.stringify(finishedForm),
+        });
+        setFinishedEntries((current) => [response.data, ...current]);
+      }
+
+      closeModal();
+    } catch (requestError) {
+      setMutationError(requestError.message);
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
 
-  const deleteEntry = (entryType, entryId) => {
+  const deleteEntry = async (entryType, entryId) => {
     if (!window.confirm('Delete this inventory entry?')) {
       return;
     }
 
-    if (entryType === 'raw') {
-      setRawEntries((current) => current.filter((entry) => entry.id !== entryId));
-    } else {
-      setFinishedEntries((current) => current.filter((entry) => entry.id !== entryId));
+    try {
+      setMutationError('');
+
+      if (entryType === 'raw') {
+        await apiRequest(`/inventory/raw-materials/${entryId}`, {
+          method: 'DELETE',
+          headers: {},
+        });
+        setRawEntries((current) => current.filter((entry) => entry.id !== entryId));
+      } else {
+        await apiRequest(`/inventory/finished-goods/${entryId}`, {
+          method: 'DELETE',
+          headers: {},
+        });
+        setFinishedEntries((current) => current.filter((entry) => entry.id !== entryId));
+      }
+    } catch (requestError) {
+      setMutationError(requestError.message);
     }
   };
 
@@ -227,8 +294,22 @@ export default function Inventory() {
       ? `${modalState.mode === 'edit' ? 'Edit' : 'Add'} raw material entry`
       : `${modalState.mode === 'edit' ? 'Edit' : 'Add'} finished goods entry`;
 
+  if (isLoading) {
+    return <Loader message="Loading inventory data from the backend." />;
+  }
+
+  if (pageError) {
+    return <ErrorState message={pageError} onRetry={() => window.location.reload()} />;
+  }
+
   return (
     <div className="space-y-6">
+      {mutationError ? (
+        <div className="rounded-[24px] border border-red-200 bg-red-50/80 px-5 py-4 text-sm text-red-700">
+          {mutationError}
+        </div>
+      ) : null}
+
       <section className="grid gap-4 lg:grid-cols-3">
         {[
           {
@@ -468,6 +549,7 @@ export default function Inventory() {
           <InventoryForm
             entryType="raw"
             formState={rawForm}
+            isSaving={isSaving}
             onSubmit={saveRawEntry}
             setFormState={setRawForm}
           />
@@ -475,6 +557,7 @@ export default function Inventory() {
           <InventoryForm
             entryType="finished"
             formState={finishedForm}
+            isSaving={isSaving}
             onSubmit={saveFinishedEntry}
             setFormState={setFinishedForm}
           />

@@ -1,18 +1,32 @@
 import { motion } from 'framer-motion';
 import { FiBox, FiDollarSign, FiTag } from 'react-icons/fi';
 import Button from '../components/Button';
-import { productCatalogResponse } from '../data/products';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
+import useApiResource from '../hooks/useApiResource';
 
 export default function AdminProducts() {
-  const products = productCatalogResponse.data;
+  const { data: products, isLoading, error, refetch } = useApiResource('/products', []);
+  const averagePrice = products.length
+    ? `Rs ${Math.round(products.reduce((sum, product) => sum + product.priceValue, 0) / products.length)}`
+    : 'Rs 0';
+  const totalCategories = new Set(products.map((product) => product.category)).size;
+
+  if (isLoading) {
+    return <Loader message="Loading the admin product catalog from the backend." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={refetch} />;
+  }
 
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-3">
         {[
           { label: 'Listed Products', value: products.length, note: 'Customer-facing catalog items', icon: FiBox },
-          { label: 'Avg Selling Price', value: 'Rs 156', note: 'Across current D2C assortment', icon: FiDollarSign },
-          { label: 'Core Categories', value: '5', note: 'Millets, pickles, drinks, condiments, wellness', icon: FiTag },
+          { label: 'Avg Selling Price', value: averagePrice, note: 'Across current D2C assortment', icon: FiDollarSign },
+          { label: 'Core Categories', value: String(totalCategories), note: 'Live categories from the active catalog', icon: FiTag },
         ].map(({ label, value, note, icon: Icon }, index) => (
           <motion.div
             key={label}
@@ -35,7 +49,7 @@ export default function AdminProducts() {
             <p className="subtle-label">Admin Products</p>
             <h2 className="mt-2 text-2xl font-semibold text-primary">Product catalog management view</h2>
           </div>
-          <Button variant="accent">Add Product</Button>
+          <Button onClick={refetch} variant="accent">Refresh Catalog</Button>
         </div>
 
         <div className="overflow-x-auto">
@@ -59,7 +73,7 @@ export default function AdminProducts() {
                   <td className="px-6 py-4">{product.tone}</td>
                   <td className="px-6 py-4">
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                      Live
+                      Live API
                     </span>
                   </td>
                 </tr>

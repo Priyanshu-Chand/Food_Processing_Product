@@ -2,7 +2,9 @@ import { motion } from 'framer-motion';
 import { startTransition, useState } from 'react';
 import { FiCopy, FiEdit3, FiRefreshCw, FiZap } from 'react-icons/fi';
 import Button from '../components/Button';
-import { aiSamplesResponse } from '../data/products';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
+import useApiResource from '../hooks/useApiResource';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 const initialForm = {
@@ -36,7 +38,7 @@ export default function Generator() {
   const [output, setOutput] = useState(() => generateDescription(form));
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
-  const aiSampleProducts = aiSamplesResponse.data;
+  const { data: aiSampleProducts, isLoading, error, refetch } = useApiResource('/ai-samples', []);
 
   const handleGenerate = () => {
     startTransition(() => {
@@ -61,6 +63,14 @@ export default function Generator() {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
+
+  if (isLoading) {
+    return <Loader message="Loading AI-ready sample products from the backend." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={refetch} />;
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">

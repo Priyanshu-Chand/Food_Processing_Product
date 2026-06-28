@@ -1,9 +1,19 @@
 import { motion } from 'framer-motion';
 import { FiLayers, FiType } from 'react-icons/fi';
-import { packagingResponse } from '../data/products';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
+import useApiResource from '../hooks/useApiResource';
 
 export default function Packaging() {
-  const packagingBriefs = packagingResponse.data;
+  const { data: packagingBriefs, isLoading, error, refetch } = useApiResource('/packaging', []);
+
+  if (isLoading) {
+    return <Loader message="Loading packaging briefs from the backend." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={refetch} />;
+  }
 
   return (
     <div className="space-y-6">

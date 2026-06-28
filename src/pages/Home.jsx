@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiMapPin, FiMessageCircle, FiPhone, FiShield, FiTruck } from 'react-icons/fi';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
 import MapComponent from '../components/MapComponent';
 import ProductCard from '../components/ProductCard';
-import { productCatalogResponse } from '../data/products';
+import useApiResource from '../hooks/useApiResource';
 import { buildWhatsAppLink } from '../utils/whatsapp';
 
 const storyPillars = [
@@ -23,12 +25,16 @@ const storyPillars = [
 ];
 
 export default function Home() {
-  const products = productCatalogResponse.data;
-  const [quantities, setQuantities] = useState(
-    () => Object.fromEntries(products.map((product) => [product.id, 1])),
-  );
+  const { data: products, isLoading, error, refetch } = useApiResource('/products', []);
+  const [quantities, setQuantities] = useState({});
 
-  const featuredProducts = useMemo(() => products.slice(0, 6), []);
+  useEffect(() => {
+    setQuantities((previous) =>
+      Object.fromEntries(products.map((product) => [product.id, previous[product.id] ?? 1])),
+    );
+  }, [products]);
+
+  const featuredProducts = products.slice(0, 6);
 
   const updateQuantity = (id, delta) => {
     setQuantities((previous) => ({
@@ -46,6 +52,22 @@ export default function Home() {
     });
     window.open(link, '_blank', 'noopener,noreferrer');
   };
+
+  if (isLoading) {
+    return (
+      <div className="section-shell py-10 md:py-14">
+        <Loader message="Loading the live HimShakti catalog for the storefront." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="section-shell py-10 md:py-14">
+        <ErrorState message={error} onRetry={refetch} />
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">

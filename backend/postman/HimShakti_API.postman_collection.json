@@ -1,0 +1,291 @@
+{
+  "info": {
+    "_postman_id": "8ce6921b-a615-452c-91ea-47b9a6fcc6b7",
+    "name": "HimShakti API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "List Products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["products"]
+        }
+      }
+    },
+    {
+      "name": "Get Product By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["products", "{{productId}}"]
+        }
+      }
+    },
+    {
+      "name": "Search Products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products/search?q=juice",
+          "host": ["{{baseUrl}}"],
+          "path": ["products", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "juice"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Product",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Himalayan Plum Preserve\",\n  \"shortLabel\": \"Plum\",\n  \"category\": \"Condiments\",\n  \"origin\": \"Nainital\",\n  \"weight\": \"220 gm\",\n  \"priceValue\": 189,\n  \"tagline\": \"Sweet mountain plum preserve with a handcrafted finish.\",\n  \"highlights\": [\"Small Batch\", \"Giftable\", \"Fruit Forward\"],\n  \"tone\": \"Premium\",\n  \"imageGradient\": \"from-[#5F2A4A] via-[#A84B78] to-[#F6C0D7]\",\n  \"description\": \"A premium Himalayan plum preserve crafted for modern gifting, breakfast tables, and direct-to-customer retail storytelling.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["products"]
+        }
+      }
+    },
+    {
+      "name": "Update Product",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"priceValue\": 209,\n  \"tagline\": \"Updated premium preserve for festive direct orders.\",\n  \"highlights\": [\"Premium\", \"Festive\", \"Fruit Forward\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["products", "{{productId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Product",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["products", "{{productId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/dashboard",
+          "host": ["{{baseUrl}}"],
+          "path": ["dashboard"]
+        }
+      }
+    },
+    {
+      "name": "Get Inventory",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory"]
+        }
+      }
+    },
+    {
+      "name": "Create Raw Material",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"batch\": \"A120\",\n  \"item\": \"Apricot Pulp\",\n  \"entryDate\": \"2026-06-28\",\n  \"expiryDate\": \"2026-07-18\",\n  \"quantity\": \"35 kg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/raw-materials",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "raw-materials"]
+        }
+      }
+    },
+    {
+      "name": "Update Raw Material",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": \"45 kg\",\n  \"expiryDate\": \"2026-07-22\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/raw-materials/{{rawMaterialId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "raw-materials", "{{rawMaterialId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Raw Material",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/raw-materials/{{rawMaterialId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "raw-materials", "{{rawMaterialId}}"]
+        }
+      }
+    },
+    {
+      "name": "Create Finished Good",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"product\": \"Apricot Chutney\",\n  \"productionDate\": \"2026-06-28\",\n  \"shelfLifeDays\": 120,\n  \"stock\": \"150 jars\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/finished-goods",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "finished-goods"]
+        }
+      }
+    },
+    {
+      "name": "Update Finished Good",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": \"175 jars\",\n  \"shelfLifeDays\": 130\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/finished-goods/{{finishedGoodId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "finished-goods", "{{finishedGoodId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Finished Good",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/finished-goods/{{finishedGoodId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "finished-goods", "{{finishedGoodId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Packaging Briefs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/packaging",
+          "host": ["{{baseUrl}}"],
+          "path": ["packaging"]
+        }
+      }
+    },
+    {
+      "name": "Get AI Samples",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/ai-samples",
+          "host": ["{{baseUrl}}"],
+          "path": ["ai-samples"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "productId",
+      "value": "prd-001"
+    },
+    {
+      "key": "rawMaterialId",
+      "value": "rm-001"
+    },
+    {
+      "key": "finishedGoodId",
+      "value": "fg-001"
+    }
+  ]
+}

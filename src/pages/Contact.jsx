@@ -32,7 +32,7 @@ export default function Contact() {
               <p className="text-xs uppercase tracking-[0.3em] text-primary/55">Phone</p>
               <p className="mt-2 flex items-center gap-3 text-sm text-ink/80">
                 <FiPhone className="text-primary" />
-                +91 90000 00000
+                +91 8384821028
               </p>
             </div>
             <a

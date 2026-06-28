@@ -1,4 +1,4 @@
-const defaultNumber = '919000000000';
+const defaultNumber = '918384821028';
 
 export function buildWhatsAppMessage({ productName, quantity, address = '' }) {
   return `Hello HimShakti,

@@ -1,16 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
 import ProductCard from '../components/ProductCard';
-import { productCatalogResponse } from '../data/products';
+import useApiResource from '../hooks/useApiResource';
 import { buildWhatsAppLink } from '../utils/whatsapp';
 
 export default function Products() {
-  const products = productCatalogResponse.data;
-  const [quantities, setQuantities] = useState(
-    () => Object.fromEntries(products.map((product) => [product.id, 1])),
-  );
+  const { data: products, isLoading, error, refetch } = useApiResource('/products', []);
+  const [quantities, setQuantities] = useState({});
 
-  const groupedProducts = useMemo(() => products, [products]);
+  useEffect(() => {
+    setQuantities((previous) =>
+      Object.fromEntries(products.map((product) => [product.id, previous[product.id] ?? 1])),
+    );
+  }, [products]);
 
   const updateQuantity = (id, delta) => {
     setQuantities((previous) => ({
@@ -28,6 +32,22 @@ export default function Products() {
     });
     window.open(link, '_blank', 'noopener,noreferrer');
   };
+
+  if (isLoading) {
+    return (
+      <div className="section-shell py-10 md:py-14">
+        <Loader message="Loading products from the backend catalog." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="section-shell py-10 md:py-14">
+        <ErrorState message={error} onRetry={refetch} />
+      </div>
+    );
+  }
 
   return (
     <div className="section-shell pb-20 pt-10 md:pt-14">
@@ -48,7 +68,7 @@ export default function Products() {
 
       <section className="mt-10">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {groupedProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard
               key={product.id}
               onDecrease={() => updateQuantity(product.id, -1)}

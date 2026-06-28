@@ -1,10 +1,46 @@
 import { motion } from 'framer-motion';
 import ChartCard from '../components/ChartCard';
-import { dashboardResponse, productCatalogResponse } from '../data/products';
+import ErrorState from '../components/ErrorState';
+import Loader from '../components/Loader';
+import useApiResource from '../hooks/useApiResource';
 
 export default function Dashboard() {
-  const { stats, salesSeries, categoryMix, inventoryStatus } = dashboardResponse.data;
-  const products = productCatalogResponse.data;
+  const {
+    data: dashboard,
+    isLoading: dashboardLoading,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useApiResource('/dashboard', {
+    stats: [],
+    salesSeries: [],
+    categoryMix: [],
+    inventoryStatus: [],
+  });
+  const {
+    data: products,
+    isLoading: productsLoading,
+    error: productsError,
+    refetch: refetchProducts,
+  } = useApiResource('/products', []);
+  const { stats, salesSeries, categoryMix, inventoryStatus } = dashboard;
+  const isLoading = dashboardLoading || productsLoading;
+  const error = dashboardError || productsError;
+
+  if (isLoading) {
+    return <Loader message="Loading analytics and catalog data from the backend." />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => {
+          refetchDashboard();
+          refetchProducts();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
